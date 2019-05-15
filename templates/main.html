@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<h1 style="padding-left:40%;">Blog Entries</h1>
+<br>
+<br>
+
+{% for posts in blog %}
+
+<form>
+<h2><a href="/focus_post?id={{posts.id}}">{{posts.title}}</a></h2>
+
+
+<p name="body">{{posts.body}}</p>
+<hr/>
+<br>
+<br>
+
+</form>
+
+
+{% endfor %}
+{% endblock %}

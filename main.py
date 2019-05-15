@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -12,38 +12,50 @@ class Blog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
-    body = db.Column(db.String(120))
+    body = db.Column(db.String(500))
 
-    def __init__(self, name):
-        self.name = name
-        self.completed = False
+    def __init__(self, title, body):
+        self.title = title
+        self.body = body
 
+#----------------------POST CONFIRMATION
+@app.route("/postCon", methods=["POST"])
+def posting():
+    
+    title = request.form['title']
+    body = request.form['body']
+    error = ""
 
-@app.route('/', methods=['POST', 'GET'])
-def index():
+    if(title.strip() == "" or body.strip() == ""):
+        error = "Error: Title or textarea can't not be left empty..."
+        return render_template("newpost.html", error=error)
 
-    if request.method == 'POST':
-        task_name = request.form['task']
-        new_task = Task(task_name)
-        db.session.add(new_task)
+    else:
+        post = Blog(title=title, body=body)
+        db.session.add(post)
         db.session.commit()
-
-    tasks = Task.query.filter_by(completed=False).all()
-    completed_tasks = Task.query.filter_by(completed=True).all()
-    return render_template('todos.html',title="Get It Done!", 
-        tasks=tasks, completed_tasks=completed_tasks)
+        return render_template("postCon.html")
 
 
-@app.route('/delete-task', methods=['POST'])
-def delete_task():
+#----------------------CREATE POST
+@app.route("/newpost", methods=["GET"])
+def new_post():
+    return render_template("newpost.html")
 
-    task_id = int(request.form['task-id'])
-    task = Task.query.get(task_id)
-    task.completed = True
-    db.session.add(task)
-    db.session.commit()
 
-    return redirect('/')
+#----------------------FOCUS ON CLICKED POST
+@app.route("/focus_post", methods=["GET"])
+def post_focus():
+    id = request.args.get("id")  
+    entry = Blog.query.get(int(id))
+    return render_template("focus_post.html", title=entry.title, body=entry.body)
+
+
+#----------------------MAIN PAGE
+@app.route("/", methods=['POST', 'GET'])
+def index():
+    post = Blog.query.filter_by().all()
+    return render_template("main.html", blog = post)
 
 
 if __name__ == '__main__':
